@@ -28,6 +28,7 @@ export default class Clock extends React.Component {
   reset() {
     this.stopCounter();
     this.setState({ ...this.initialValues() });
+    this.resetBeeper();
   }
 
   roundFinished() {
@@ -84,7 +85,12 @@ export default class Clock extends React.Component {
   }
 
   beepSound() {
-    console.log("beep, beep, beep...");
+    this.audioBeep.play();
+  }
+
+  resetBeeper() {
+    this.audioBeep.pause();
+    this.audioBeep.currentTime = 0;
   }
 
   initialValues() {
@@ -123,6 +129,17 @@ export default class Clock extends React.Component {
             }
             reset={() => this.reset()}
             running={this.state.isRunning}
+          />
+        </div>
+
+        <div>
+          <audio
+            id="beep"
+            preload="auto"
+            ref={(audio) => {
+              this.audioBeep = audio;
+            }}
+            src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
           />
         </div>
       </div>
