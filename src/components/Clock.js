@@ -1,52 +1,131 @@
+import React from "react";
 import Session from "./Session";
 import Break from "./Break";
-import { useState } from "react";
-import Display from "./Display";
+import DisplayTime from "./DisplayTime";
+import Actions from "./Actions";
 
-export default function Clock() {
-  const maxValue = 60;
-  const minValue = 1;
-  const step = 1;
+const SESSION = "Session";
+const BREAK = "Break";
+const initialSessionValue = 25;
+const initialBreakValue = 5;
 
-  const [sessionValue, setSession] = useState(25);
-  const [breakValue, setBreak] = useState(5);
-  const [displayMinutes, setDisplayMinutes] = useState("60");
-  const [displaySeconds, setDisplaySeconds] = useState("00");
-
-  function increment(value) {
-    return correctValue(value + step);
+export default class Clock extends React.Component {
+  constructor() {
+    super();
+    this.state = { ...this.initialValues() };
   }
 
-  function decrement(value) {
-    return correctValue(value - step);
+  play() {
+    this.setState({ isRunning: true, isStarted: true });
+    this.startCounter();
   }
 
-  function correctValue(newValue) {
-    if (newValue > maxValue) {
-      return maxValue;
-    } else if (newValue <= minValue) {
-      return minValue;
+  pause() {
+    this.setState({ isRunning: false });
+    this.stopCounter();
+  }
+
+  reset() {
+    this.stopCounter();
+    this.setState({ ...this.initialValues() });
+  }
+
+  roundFinished() {
+    this.stopCounter();
+    this.beepSound();
+    this.startNextTimeRound();
+  }
+
+  startCounter() {
+    const counter = setInterval(() => {
+      this.setState((state) => ({ time: state.time - 1 }));
+      console.log("Time elapsing: ", this.state.time);
+      if (this.state.time < 0) {
+        this.setState({ time: 0 });
+        this.roundFinished();
+      }
+    }, 1000);
+
+    this.setState({ counter });
+  }
+
+  stopCounter() {
+    clearInterval(this.state.counter);
+  }
+
+  updateSession(value) {
+    this.setState({ sessionValue: value });
+    if (!this.state.isStarted && this.state.current === SESSION) {
+      this.setState((state) => ({ time: state.sessionValue * 60 }));
     }
-    return newValue;
   }
 
-  return (
-    <div>
-      <div style={{ display: "flex" }}>
-        <Session
-          value={sessionValue}
-          increment={() => setSession(increment(sessionValue))}
-          decrement={() => setSession(decrement(sessionValue))}
-        />
-        <Break
-          value={breakValue}
-          increment={() => setBreak(increment(breakValue))}
-          decrement={() => setBreak(decrement(breakValue))}
-        />
-      </div>
+  updateBreak(value) {
+    this.setState({ breakValue: value });
+    if (!this.state.isStarted && this.state.current === BREAK) {
+      this.setState((state) => ({ time: state.breakValue * 60 }));
+    }
+  }
+
+  startNextTimeRound() {
+    if (this.state.current === SESSION) {
+      this.setState((state) => ({
+        time: state.breakValue * 60,
+        current: BREAK,
+      }));
+    } else {
+      this.setState((state) => ({
+        time: state.sessionValue * 60,
+        current: SESSION,
+      }));
+    }
+
+    this.play();
+  }
+
+  beepSound() {
+    console.log("beep, beep, beep...");
+  }
+
+  initialValues() {
+    return {
+      isStarted: false,
+      isRunning: false,
+      sessionValue: initialSessionValue,
+      breakValue: initialBreakValue,
+      current: SESSION,
+      time: initialSessionValue * 60,
+      counter: null,
+    };
+  }
+
+  render() {
+    return (
       <div>
-        <Display minutes={displayMinutes} seconds={displaySeconds} />
+        <div style={{ display: "flex" }}>
+          <Session
+            value={this.state.sessionValue}
+            updateValue={(value) => this.updateSession(value)}
+          />
+          <Break
+            value={this.state.breakValue}
+            updateValue={(value) => this.updateBreak(value)}
+          />
+        </div>
+        <div style={{ display: "grid", gap: "10px" }}>
+          <DisplayTime
+            label={this.state.current}
+            timeInSeconds={this.state.time}
+          />
+          <Actions
+            playPause={() =>
+              this.state.isRunning ? this.pause() : this.play()
+            }
+            reset={() => this.reset()}
+            running={this.state.isRunning}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
