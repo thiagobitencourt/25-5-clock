@@ -39,10 +39,8 @@ export default class Clock extends React.Component {
 
   startCounter() {
     const counter = setInterval(() => {
-      this.setState((state) => ({ time: state.time - 1 }));
-      console.log("Time elapsing: ", this.state.time);
+      this.setState({ time: this.state.time - 1 });
       if (this.state.time < 0) {
-        this.setState({ time: 0 });
         this.roundFinished();
       }
     }, 1000);

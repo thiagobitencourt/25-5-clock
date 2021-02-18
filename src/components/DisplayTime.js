@@ -5,8 +5,11 @@ export default function DisplayTime({ timeInSeconds, label }) {
   const [sec, setSec] = useState(timeInSeconds % 60);
 
   useEffect(() => {
-    setMin(parseInt(timeInSeconds / 60));
-    setSec(timeInSeconds % 60);
+    const minutes = parseInt(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+
+    setMin(minutes >= 0 ? minutes : 0);
+    setSec(seconds >= 0 ? seconds : 0);
   }, [timeInSeconds]);
 
   const style = {
