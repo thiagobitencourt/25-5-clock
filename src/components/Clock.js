@@ -43,7 +43,7 @@ export default class Clock extends React.Component {
       if (this.state.time < 0) {
         this.roundFinished();
       }
-    }, 1000);
+    }, 1500 /* gambiarra */);
 
     this.setState({ counter });
   }
